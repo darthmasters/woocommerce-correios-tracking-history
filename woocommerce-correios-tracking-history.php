@@ -13,10 +13,18 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
-add_action( 'woocommerce_view_order', 'wc_correios_order_tracking_history', 2 );
+function formatandoMensagem ($tracking_code_history) {
+    $content = "Histórico de Rastreamento \n";
+    $content .= "Segue tabela abaixo \n";
+    $content .= $tracking_code_history;
+    $content .= "\n";
+    $content .= "\n";
+    $content .= "Obrigado por comprar em nossas lojas";
+    return $content;
+}
 
 function renomeandoClasseTabelaHistorico($content) {
-    $table = preg_replace( "/<table class=\"listEvent sro\">/", '<table class="tracking_history">', $content );
+    $table = preg_replace( "/<table class=\"listEvent sro\">/", '<table class="tracking_history" border="1">', $content );
     return $table;
 }
 
@@ -58,7 +66,12 @@ function pegarCodigoRastreamento ($order) {
 }
 
 function pegarHistoricoRastreamento ($tracking_code) {
-    $post = ['objetos' => $tracking_code, 'btnPesq' => 'Buscar'];
+    
+    $post = [
+        'objetos' => $tracking_code,
+        'btnPesq' => 'Buscar'
+    ];
+
     $ch = curl_init('http://www2.correios.com.br/sistemas/rastreamento/resultado.cfm?');
 
     // header('Content-type: text/html; charset=UTF-8');
@@ -91,14 +104,24 @@ function pegarTodosHistoricos () {
     foreach($orders as $order) {
         $tracking_code = pegarCodigoRastreamento($order);
         $tracking_code_history = pegarHistoricoRastreamento($tracking_code);
-        echo $tracking_code_history;
+        $tracking_code_history = renomeandoClasseTabelaHistorico($tracking_code_history);
 
-        echo "Código MD5: ".pegarHistoricoMD5($tracking_code_history)."<br>";
-        echo verificaObjetoPostado($tracking_code_history) ? "Postado<br>" : "Não Postado<br>";
-        echo verificaObjetoSaiuParaEntrega($tracking_code_history) ? "Saiu<br>" : "Não saiu<br>";
-        echo verificaObjetoEntregue($tracking_code_history) ? "Entregue<br>" : "Não Entregue<br>";
+        // echo "Código MD5: ".pegarHistoricoMD5($tracking_code_history)."<br>";
+        // echo verificaObjetoPostado($tracking_code_history) ? "Postado<br>" : "Não Postado<br>";
+        // echo verificaObjetoSaiuParaEntrega($tracking_code_history) ? "Saiu<br>" : "Não saiu<br>";
+        // echo verificaObjetoEntregue($tracking_code_history) ? "Entregue<br>" : "Não Entregue<br>";
 
-        wp_mail( "shinzootk@gmail.com", "aprendendo a enviar email", $tracking_code_history, '', array( '' ) );
+        // Sempre colocar o content-type quando enviar email html
+        $headers = "MIME-Version: 1.0" . "\r\n";
+        $headers .= "Content-type:text/html;charset=UTF-8" . "\r\n";
+
+        // Pegando conteúdo de arquivo html
+        $file = plugins_url( '/templates/emails/tracking_history.html', __FILE__ );
+        $html = file_get_contents($file);
+        $body = str_replace('{historico_rastreamento}', $tracking_code_history, $html);
+
+        // Enviando e-mail
+        mail( "shinzootk@gmail.com", "aprendendo a enviar email", $body, $headers);
     }
 }
 
