@@ -106,16 +106,11 @@ function pegarHistoricoRastreamento ($tracking_code) {
     phpQuery::newDocumentHTML($output[0], $charset = 'utf-8');
 
     $informacoes = [
-        'data' => trim(pq('tr .sroDtEvent')),
-        'label' => trim(pq('tr .sroLbEvent'))
+        'data' => pq('.sroDtEvent'),
+        'label' => pq('.sroLbEvent')
     ];
 
-    echo '<ul>';
-    echo '<li> Data: '. $informacoes['data'] .'</li>';
-    echo '<li> Situação: '. $informacoes['label'] .'</li>';
-    echo '</ul>';
-
-    print_r(explode(" ", $informacoes['data']));
+    echo $informacoes['data'];
 
     return $output[0];
 }
@@ -166,4 +161,47 @@ function pegarTodosHistoricos () {
     }
 }
 
-add_action( 'woocommerce_before_my_account', 'pegarTodosHistoricos' );
+// add_action( 'woocommerce_before_my_account', 'pegarTodosHistoricos' );
+
+// function testando () {
+//     $instance = new WC_Correios_Tracking_History();
+//     $result = $instance->get_tracking_history(['DV857306727BR']);
+//     echo "<pre>";
+//     print_r($result[0]->evento[0]->descricao);
+//     echo "</pre>";
+// }
+
+// add_action( 'woocommerce_before_my_account', 'pegarTodosHistoricos' );
+
+function pegaTodasDatas ($data) {
+    preg_match_all("/\d{2}\/\d{2}\/\d{4}/", $data, $matches);
+    return $matches;
+}
+
+function pegaTodasHoras ($data) {
+    preg_match_all("/\d{2}:\d{2}/", $data, $matches);
+    return $matches;
+}
+
+function pegarTodasLocalizacoes () {
+    $data = "<label style='text-transform:capitalize;'>ARACAJU&nbsp;/&nbsp;SE</label>
+        <label style='text-transform:capitalize;'>MARAGOJI&nbsp;/&nbsp;SE</label>";
+
+    preg_match_all("<label style='text-transform:capitalize;'>.*<\/label>/", $data, $matches);
+    print_r($matches);
+}
+
+// add_action( 'woocommerce_before_my_account', 'pegarTodasLocalizacoes' );
+
+
+function atualizaCodigoRastreamento ($meta_id, $object_id, $meta_key, $meta_value) {
+    echo "meta_id: {$meta_id} \n";
+    echo "object_id: {$object_id} \n";
+    echo "meta_key: {$meta_key} \n";
+    echo "meta_value: {$meta_value} \n";
+
+    // $email = 'shinzootk@gmail.com';
+    // wp_mail( $email, 'Código Atualizado', 'O código de rastreamento foi atualizado com sucesso!.');
+}
+
+add_action('update_post_meta', 'atualizaCodigoRastreamento');
