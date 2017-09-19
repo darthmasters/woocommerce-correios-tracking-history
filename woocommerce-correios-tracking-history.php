@@ -193,15 +193,17 @@ function pegarTodasLocalizacoes () {
 
 // add_action( 'woocommerce_before_my_account', 'pegarTodasLocalizacoes' );
 
+// verifica se foi adicionado
 
+
+add_action( 'added_post_meta', 'atualizaCodigoRastreamento', 10, 4 );
+add_action( 'update_post_meta', 'atualizaCodigoRastreamento', 10, 4 );
+
+// verifica se foi atualizado
 function atualizaCodigoRastreamento ($meta_id, $object_id, $meta_key, $meta_value) {
-    echo "meta_id: {$meta_id} \n";
-    echo "object_id: {$object_id} \n";
-    echo "meta_key: {$meta_key} \n";
-    echo "meta_value: {$meta_value} \n";
-
-    // $email = 'shinzootk@gmail.com';
-    // wp_mail( $email, 'Código Atualizado', 'O código de rastreamento foi atualizado com sucesso!.');
+    if ($meta_key == "_correios_tracking_code") {
+        echo "meta_id: {$meta_id} \n object_id: {$object_id} \n meta_key: {$meta_key} \n meta_value: {$meta_value} \n";
+        die;
+    }
 }
 
-add_action('update_post_meta', 'atualizaCodigoRastreamento');
