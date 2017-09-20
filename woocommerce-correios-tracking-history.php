@@ -17,7 +17,7 @@ require_once "includes/class/Database.class.php";
 require_once "includes/phpQuery.php";
 
 function formatandoMensagem ($tracking_code_history) {
-    $content = "Histórico de Rastreamento \n";
+    $content  = "Histórico de Rastreamento \n";
     $content .= "Segue tabela abaixo \n";
     $content .= $tracking_code_history;
     $content .= "\n";
@@ -140,7 +140,10 @@ function pegarTodosHistoricos () {
         $tracking_code_history = pegarHistoricoRastreamento($tracking_code);
         $tracking_code_history = renomeandoClasseTabelaHistorico($tracking_code_history);
 
-        echo $tracking_code_history;
+        $nome = $order->billing_first_name . ' ' . $order->billing_last_name;
+        $email = $order->billing_email;
+        echo "<br> Nome: {$nome} - E-mail: {$email}";
+        // echo $tracking_code_history;
 
         // echo "Código MD5: ".pegarHistoricoMD5($tracking_code_history)."<br>";
         // echo verificaObjetoPostado($tracking_code_history) ? "Postado<br>" : "Não Postado<br>";
@@ -148,20 +151,23 @@ function pegarTodosHistoricos () {
         // echo verificaObjetoEntregue($tracking_code_history) ? "Entregue<br>" : "Não Entregue<br>";
 
         // Sempre colocar o content-type quando enviar email html
-        // $headers = "MIME-Version: 1.0" . "\r\n";
-        // $headers .= "Content-type:text/html;charset=UTF-8" . "\r\n";
+        $headers = "MIME-Version: 1.0" . "\r\n";
+        $headers .= "Content-type:text/html;charset=UTF-8" . "\r\n";
 
         // Pegando conteúdo de arquivo html
-        // $file = plugins_url( '/templates/emails/tracking_history.html', __FILE__ );
-        // $html = file_get_contents($file);
-        // $body = str_replace('{historico_rastreamento}', $tracking_code_history, $html);
+        $file = plugins_url( '/templates/emails/tracking_history.html', __FILE__ );
+        $html = file_get_contents($file);
+
+        // Substituindo conteúdos
+        $html = str_replace('[NOME]', $nome, $html);
+        $html = str_replace('[HISTORICO_RASTREAMENTO]', $tracking_code_history, $html);
 
         // Enviando e-mail
-        // mail( "shinzootk@gmail.com", "aprendendo a enviar email", $body, $headers);
+        mail( $email, "aprendendo a enviar email", $html, $headers);
     }
 }
 
-// add_action( 'woocommerce_before_my_account', 'pegarTodosHistoricos' );
+add_action( 'woocommerce_before_my_account', 'pegarTodosHistoricos' );
 
 // function testando () {
 //     $instance = new WC_Correios_Tracking_History();
@@ -188,7 +194,6 @@ function pegarTodasLocalizacoes () {
         <label style='text-transform:capitalize;'>MARAGOJI&nbsp;/&nbsp;SE</label>";
 
     preg_match_all("<label style='text-transform:capitalize;'>.*<\/label>/", $data, $matches);
-    print_r($matches);
 }
 
 // add_action( 'woocommerce_before_my_account', 'pegarTodasLocalizacoes' );
